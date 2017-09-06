@@ -32,13 +32,24 @@ export default class extends Component {
                     <NavbarToggler right onClick={this.toggle} />
                     <NavbarBrand href="/">Spordiklubi Imperial</NavbarBrand>
                     <Collapse isOpen={this.state.isOpen} navbar>
+                        {auth.currentUser &&
                         <Nav className="ml-auto" navbar>
-                            {auth.currentUser &&
                             <NavItem>
-                                <NavLink onClick={this.logout}>Logout</NavLink>
+                                <NavLink href="/groups">Grupid</NavLink>
                             </NavItem>
-                            }
+                            <NavItem>
+                                <NavLink href="/persons">Inimesed</NavLink>
+                            </NavItem>
+                            <NavItem>
+                                <NavLink onClick={this.logout}>Logi välja</NavLink>
+                            </NavItem>
                         </Nav>
+                        }
+
+                        {auth.currentUser === null &&
+                        <Nav className="ml-auto" navbar>
+                        </Nav>
+                        }
                     </Collapse>
                 </Navbar>
             </div>

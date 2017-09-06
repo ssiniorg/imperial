@@ -14,6 +14,9 @@ export default class extends Component {
     }
 
     componentDidMount() {
+        if (auth.currentUser === null) {
+            return;
+        }
         const userID = auth.currentUser.uid;
         this.setState({userID: userID});
         db.ref("/users/" + userID).once('value').then((snapshot) => {
@@ -22,12 +25,13 @@ export default class extends Component {
     }
 
     setUserRole(user) {
-        if (user.role === undefined) {
+        if (user === null || user.role === undefined) {
             console.log("blah");
             db.ref('/users/' + this.state.userID).set({
                 email: auth.currentUser.email,
                 name: auth.currentUser.displayName,
-                role: 3
+                role: 4,
+                group: "Külaline"
             });
             console.log("blah2");
         } else {
