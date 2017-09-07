@@ -6,6 +6,7 @@ import HomePage from "./HomePage";
 import NavBar from "./NavBar";
 import PersonsPage from "./PersonsPage";
 import GroupsPage from "./GroupsPage";
+import TrainingsPage from "./TrainingsPage";
 
 function PrivateRoute({component: Component, authed, ...rest}) {
     return (
@@ -60,11 +61,12 @@ class App extends Component {
             <BrowserRouter>
                 <div>
                     <NavBar/>
-                    <PublicRoute authed={this.state.authed} path="/" exact render={() => <Redirect to='/login'/>}/>
+                    <Route path="/" exact render={() => <Redirect to='/login'/>}/>
                     <PublicRoute authed={this.state.authed} path="/login" component={Login}/>
                     <PrivateRoute authed={this.state.authed} path="/home" component={HomePage}/>
                     <PrivateRoute authed={this.state.authed} path="/persons" component={PersonsPage}/>
                     <PrivateRoute authed={this.state.authed} path="/groups" component={GroupsPage}/>
+                    <PrivateRoute authed={this.state.authed} path="/trainings" component={TrainingsPage}/>
                 </div>
 
             </BrowserRouter>

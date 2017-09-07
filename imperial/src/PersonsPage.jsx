@@ -16,7 +16,6 @@ export default class extends Component {
 
         this.state = {
             activeTab: 'Kõik',
-            userID: '',
             groupsList: [],
             groupOptions: [],
             groupTabs: [],
@@ -29,7 +28,9 @@ export default class extends Component {
             personCode: '',
             personPhone: '',
             personMail: '',
-            personGroup: ''
+            personGroup: '',
+            personRole: '',
+            roleOptions: []
         };
 
         this.toggle = this.toggle.bind(this);
@@ -47,7 +48,6 @@ export default class extends Component {
         if (auth.currentUser === null) {
             return;
         }
-        this.setState({userID: auth.currentUser.uid});
         db.ref("/users/").once("value").then((snapshot) => {
             let persons = [];
             snapshot.forEach((person) => {
@@ -63,6 +63,15 @@ export default class extends Component {
                 );
             });
             this.setState({personsList: persons});
+        });
+        db.ref("/roles/").on("value", (snapshot) => {
+            let roles = [];
+            snapshot.forEach((role) => {
+                roles.push(
+                    <option value={role.key} key={role.key}>{role.val().name}</option>
+                );
+            });
+            this.setState({roleOptions: roles});
         });
         this.setGroupTabs();
     }
@@ -173,6 +182,7 @@ export default class extends Component {
                     personPhone: person.phone,
                     personMail: person.email,
                     personGroup: person.group,
+                    personRole: person.role,
                     personKey: key,
                 });
             });
@@ -282,7 +292,14 @@ export default class extends Component {
                                        onChange={this.onChange}>
                                     <option></option>
                                     {this.state.groupOptions}
-                                    <option>Külaline</option>
+                                </Input>
+                            </FormGroup>
+                            <FormGroup>
+                                <Label for="personRole">Roll</Label>
+                                <Input type="select" name="personRole" id="personRole" value={this.state.personRole}
+                                       onChange={this.onChange}>
+                                    <option></option>
+                                    {this.state.roleOptions}
                                 </Input>
                             </FormGroup>
                         </Form>
@@ -332,14 +349,21 @@ export default class extends Component {
                                        onChange={this.onChange}>
                                     <option></option>
                                     {this.state.groupOptions}
-                                    <option>Külaline</option>
+                                </Input>
+                            </FormGroup>
+                            <FormGroup>
+                                <Label for="personRole">Roll</Label>
+                                <Input type="select" name="personRole" id="personRole" value={this.state.personRole}
+                                       onChange={this.onChange}>
+                                    <option></option>
+                                    {this.state.roleOptions}
                                 </Input>
                             </FormGroup>
                         </Form>
                     </ModalBody>
                     <ModalFooter>
                         <Button color="primary" onClick={this.handleEdit}>Muuda</Button>{' '}
-                        <Button color="secondary" onClick={this.toggle}>Tagasi</Button>
+                        <Button color="secondary" onClick={this.toggleEdit}>Tagasi</Button>
                     </ModalFooter>
                 </Modal>
             </div>

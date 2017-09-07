@@ -35,6 +35,9 @@ export default class extends Component {
                         {auth.currentUser &&
                         <Nav className="ml-auto" navbar>
                             <NavItem>
+                                <NavLink href="/trainings">Trennid</NavLink>
+                            </NavItem>
+                            <NavItem>
                                 <NavLink href="/groups">Grupid</NavLink>
                             </NavItem>
                             <NavItem>
