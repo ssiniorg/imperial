@@ -1,6 +1,6 @@
 {
   "rules": {
-    ".read": "auth != null && auth.token.name.matches(/^Sander Siniorg/)",
+    ".read": "auth != null",
     ".write": "auth != null",
     "users": {
       ".indexOn": ["role", "group"]
