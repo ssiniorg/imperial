@@ -116,12 +116,13 @@ export default class extends Component {
     }
 
     toggle(tab, update) {
-        console.log(update);
         if (this.state.activeTab !== tab || update) {
             let persons = [];
             let personsRef;
             if (tab === 'Kõik') {
                 personsRef = db.ref("/users/").orderByChild("group");
+            } else if (tab === "Treenerid") {
+                personsRef = db.ref("/users/").orderByChild("role").equalTo("2");
             } else {
                 personsRef = db.ref("/users/").orderByChild("group").equalTo(tab);
             }
@@ -208,7 +209,7 @@ export default class extends Component {
             phone: this.state.personPhone,
             email: this.state.personMail,
             group: this.state.personGroup,
-            role: this.state.personGroup === 'Külaline' ? 4 : 3
+            role: this.state.personRole
         }).then(() => {
             this.toggle(this.state.activeTab, true);
         });
@@ -225,7 +226,7 @@ export default class extends Component {
             phone: this.state.personPhone,
             email: this.state.personMail,
             group: this.state.personGroup,
-            role: this.state.personGroup === 'Külaline' ? 4 : 3
+            role: this.state.personRole
         }).then(() => {
             this.toggle(this.state.activeTab, true);
         });
@@ -251,10 +252,24 @@ export default class extends Component {
                             Kõik
                         </NavLink>
                     </NavItem>
+                    <NavItem>
+                        <NavLink
+                            className={classnames({ active: this.state.activeTab === 'Treenerid' })}
+                            onClick={() => { this.toggle('Treenerid'); }}
+                        >
+                            Treenerid
+                        </NavLink>
+                    </NavItem>
                     {this.state.groupsList}
                 </Nav>
                 <TabContent activeTab={this.state.activeTab}>
                     <TabPane tabId="Kõik">
+                        <ListGroup>
+                            {this.state.personsList}
+                            <ListGroupItem tag="button" color="success" onClick={this.toggleNew}><MdAddCircle />Lisa inimene</ListGroupItem>
+                        </ListGroup>
+                    </TabPane>
+                    <TabPane tabId="Treenerid">
                         <ListGroup>
                             {this.state.personsList}
                             <ListGroupItem tag="button" color="success" onClick={this.toggleNew}><MdAddCircle />Lisa inimene</ListGroupItem>
