@@ -67,10 +67,10 @@ export default class extends Component {
         db.ref("/trainings/").orderByChild("name").on("value", (snapshot) => {
             let trainings = [];
             snapshot.forEach((training) => {
-                let groupNames = training.val().groups.join(",");
+                let groupNames = training.val().groups.join(", ");
                 trainings.push(
                     <ListGroupItem className="justify-content-between" key={training.key} action>
-                        {training.val().name} {' (' + groupNames + ')'}
+                        {training.val().name} - {this.getDaysLetters(training.val().days).join(", ")} {' (' + moment.utc((training.val().startTime)).format("LT") + ' - ' + moment.utc((training.val().endTime)).format("LT") + ') - ' + groupNames}
                         <ButtonGroup>
                             <Button color="warning" onClick={() => this.toggleEdit(training.key)}><MdEdit /></Button>
                             <Button color="danger" onClick={() => this.toggleDelete(training.key)}><MdDelete /></Button>
@@ -81,6 +81,38 @@ export default class extends Component {
                 trainingsList: trainings
             })
         });
+    }
+
+    getDaysLetters(dayValues) {
+        let letters = [];
+        dayValues.forEach((val) => {
+            switch(val) {
+                case "1":
+                    letters.push("E");
+                    break;
+                case "2":
+                    letters.push("T");
+                    break;
+                case "3":
+                    letters.push("K");
+                    break;
+                case "4":
+                    letters.push("N");
+                    break;
+                case "5":
+                    letters.push("R");
+                    break;
+                case "6":
+                    letters.push("L");
+                    break;
+                case "7":
+                    letters.push("P");
+                    break;
+                default:
+                    break;
+            }
+        });
+        return letters;
     }
 
     onChange(e) {

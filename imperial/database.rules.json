@@ -4,6 +4,9 @@
     ".write": "auth != null",
     "users": {
       ".indexOn": ["role", "group"]
+    },
+    "trainingEntries": {
+      ".indexOn": ["date"]
     }
   }
 }

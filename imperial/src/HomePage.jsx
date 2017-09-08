@@ -16,10 +16,13 @@ BigCalendar.setLocalizer(
 function Event({event}) {
     return (
         <span>
-            <strong>{event.title}</strong>
+            {event.color === 'white' ?
+                <strong>{event.title}</strong> :
+                <strong style={{color: event.color}}>{event.title}</strong>
+            }
             {event.groups && (':  ' + event.groups.join(", "))}
-        </span>
-    )
+            </span>
+    );
 }
 
 export default class extends Component {
@@ -33,12 +36,19 @@ export default class extends Component {
             modal: false,
             members: [],
             membersList: [],
-            selected: []
+            selected: [],
+            trainingKey: '',
+            trainingDate: moment(),
+            saved: false,
+            savedKey: ''
         };
 
         this.toggle = this.toggle.bind(this);
         this.selected = this.selected.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleUpdate = this.handleUpdate.bind(this);
         this.populateMembersList = this.populateMembersList.bind(this);
+        this.generateRows = this.generateRows.bind(this);
     }
 
     componentDidMount() {
@@ -75,7 +85,8 @@ export default class extends Component {
                     'start': startDate.hour(startTime.hour()).minute(startTime.minute()).toDate(),
                     'end': startDate.hour(endTime.hour()).minute(endTime.minute()).toDate(),
                     'groups': training.groups,
-                    'key': snapshot.key
+                    'key': snapshot.key,
+                    'color': 'white'
                 });
             }
             startDate.add(1, 'days');
@@ -100,12 +111,11 @@ export default class extends Component {
 
     selected(name) {
         let newSelected = this.state.selected;
-        if(newSelected.indexOf(name) === -1) {
+        if (newSelected.indexOf(name) === -1) {
             newSelected.push(name);
         } else {
             newSelected = newSelected.filter(item => item !== name);
         }
-        console.log(newSelected);
         this.setState({
             selected: newSelected
         });
@@ -119,18 +129,52 @@ export default class extends Component {
                 snapshot.forEach((person) => {
                     members.push(person.val());
                     this.setState({
-                        members: members
+                        members: members,
+                        trainingKey: event.key,
+                        trainingDate: event.start
                     });
                     this.populateMembersList();
                 });
             });
         });
-        this.toggle();
+        let saved = false;
+        let savedKey = '';
+        db.ref("trainingEntries").orderByChild("date").equalTo(event.start.toISOString()).once("value").then((snapshot) => {
+            snapshot.forEach((snapshot) => {
+                if (snapshot.val().trainingKey === event.key) {
+                    saved = true;
+                    savedKey = snapshot.key;
+                }
+            });
+            this.setState({
+                modal: !this.state.modal,
+                saved: saved,
+                savedKey: savedKey
+            });
+        });
     }
 
     populateMembersList(selected) {
+        if (selected) {
+           this.generateRows(selected)
+        } else {
+            let selectedVal = [];
+            db.ref("trainingEntries").orderByChild("date").equalTo(this.state.trainingDate.toISOString()).once("value").then((snapshot) => {
+                snapshot.forEach((snapshot) => {
+                    if (snapshot.val().trainingKey === this.state.trainingKey) {
+                        selectedVal = snapshot.val().members;
+                    }
+                });
+                this.setState({
+                    selected: selectedVal
+                });
+                this.generateRows(selectedVal);
+            });
+        }
+    }
+
+    generateRows(selectedVal) {
         let membersList = [];
-        let selectedVal = selected ? selected : this.state.selected;
         this.state.members.forEach((member) => {
             let name = member.name;
             membersList.push(
@@ -139,10 +183,10 @@ export default class extends Component {
                     {name} {' (' + member.group + ')'}
                     {selectedVal.indexOf(name) === -1 ?
                         <div style={{color: "red"}}>
-                            <MdCheck />
+                            <MdCheck/>
                         </div> :
                         <div style={{color: "green"}}>
-                            <MdCheck />
+                            <MdCheck/>
                         </div>}
                 </ListGroupItem>
             );
@@ -154,7 +198,28 @@ export default class extends Component {
 
     toggle() {
         this.setState({
-            modal: !this.state.modal
+            modal: !this.state.modal,
+        });
+    }
+
+    handleSubmit() {
+        const newKey = db.ref().child("trainingEntries").push().key;
+        db.ref("/trainingEntries/" + newKey).set({
+            trainingKey: this.state.trainingKey,
+            date: this.state.trainingDate.toISOString(),
+            members: this.state.selected
+        }).then(() => {
+            this.toggle();
+        });
+    }
+
+    handleUpdate() {
+        db.ref("/trainingEntries/" + this.state.savedKey).update({
+            trainingKey: this.state.trainingKey,
+            date: this.state.trainingDate.toISOString(),
+            members: this.state.selected
+        }).then(() => {
+            this.toggle();
         });
     }
 
@@ -178,6 +243,10 @@ export default class extends Component {
                         {this.state.membersList}
                     </ModalBody>
                     <ModalFooter>
+                        {this.state.saved === false ?
+                            <Button color="primary" onClick={this.handleSubmit}>Salvesta</Button> :
+                            <Button color="primary" onClick={this.handleUpdate}>Uuenda</Button>
+                        }
                         <Button color="secondary" onClick={this.toggle}>Tagasi</Button>
                     </ModalFooter>
                 </Modal>
