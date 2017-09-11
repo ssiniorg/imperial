@@ -5,7 +5,10 @@ import BigCalendar from "react-big-calendar";
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import moment from "moment";
 import 'moment/locale/et';
-import {Button, ListGroupItem, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
+import {
+    Button, Form, FormGroup, Input, Label, ListGroupItem, Modal, ModalBody, ModalFooter,
+    ModalHeader
+} from "reactstrap";
 import {MdCheck} from "react-icons/lib/md/index";
 
 moment.locale("et");
@@ -34,21 +37,32 @@ export default class extends Component {
             userRole: null,
             events: [],
             modal: false,
+            modalAdd: false,
+            modalNew: false,
             members: [],
             membersList: [],
+            visitors: [],
+            visitorsList: [],
             selected: [],
             trainingKey: '',
             trainingDate: moment(),
             saved: false,
-            savedKey: ''
+            savedKey: '',
+            visitorName: '',
+            visitorPhone: '',
+            visitorMail: ''
         };
 
         this.toggle = this.toggle.bind(this);
+        this.toggleAdd = this.toggleAdd.bind(this);
+        this.toggleNew = this.toggleNew.bind(this);
         this.selected = this.selected.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleUpdate = this.handleUpdate.bind(this);
+        this.handleAdd = this.handleAdd.bind(this);
         this.populateMembersList = this.populateMembersList.bind(this);
         this.generateRows = this.generateRows.bind(this);
+        this.onChange = this.onChange.bind(this);
     }
 
     componentDidMount() {
@@ -122,20 +136,41 @@ export default class extends Component {
         this.populateMembersList(newSelected);
     }
 
+    selectedFromAnother(name, group) {
+        let newSelected = this.state.selected;
+        newSelected.push(name);
+        let member = {};
+        member.name = name;
+        member.group = group;
+        let newMembers = this.state.members;
+        newMembers.push(member);
+        this.setState({
+            modalNew: false,
+            modalAdd: false,
+            selected: newSelected,
+            members: newMembers
+        });
+        this.populateMembersList(newSelected);
+    }
+
     showEvent(event) {
         let members = [];
-        event.groups.forEach((group) => {
-            db.ref("/users/").orderByChild("group").equalTo(group).once("value").then((snapshot) => {
-                snapshot.forEach((person) => {
+        let visitors = [];
+        db.ref("/users/").orderByChild("group").once("value").then((snapshot) => {
+            snapshot.forEach((person) => {
+                if (event.groups.indexOf(person.val().group) === -1) {
+                    visitors.push(person.val());
+                } else {
                     members.push(person.val());
-                    this.setState({
-                        members: members,
-                        trainingKey: event.key,
-                        trainingDate: event.start
-                    });
-                    this.populateMembersList();
-                });
+                }
             });
+            this.setState({
+                visitors: visitors,
+                members: members,
+                trainingKey: event.key,
+                trainingDate: event.start
+            });
+            this.populateMembersList();
         });
         let saved = false;
         let savedKey = '';
@@ -202,6 +237,34 @@ export default class extends Component {
         });
     }
 
+    toggleAdd() {
+        let visitorsList = [];
+        this.state.visitors.forEach((visitor) => {
+            let name = visitor.name;
+            let group = "Külaline";
+            if (visitor.group) {
+                group = visitor.group;
+            }
+            visitorsList.push(
+                <ListGroupItem className="justify-content-between" key={name} action
+                               onClick={() => this.selectedFromAnother(name, group)}>
+                    {name} {' (' + group + ')'}
+                </ListGroupItem>
+            );
+        });
+
+        this.setState({
+            visitorsList: visitorsList,
+            modalAdd: !this.state.modalAdd,
+        });
+    }
+
+    toggleNew() {
+        this.setState({
+            modalNew: !this.state.modalNew,
+        });
+    }
+
     handleSubmit() {
         const newKey = db.ref().child("trainingEntries").push().key;
         db.ref("/trainingEntries/" + newKey).set({
@@ -223,6 +286,34 @@ export default class extends Component {
         });
     }
 
+    handleAdd() {
+        const newKey = db.ref().child("users").push().key;
+        db.ref("/users/" + newKey).set({
+            name: this.state.visitorName,
+            phone: this.state.visitorPhone,
+            email: this.state.visitorMail,
+            role: "4"
+        }).then(() => {
+            let newSelected = this.state.selected;
+            newSelected.push(this.state.visitorName);
+            let visitor = {};
+            visitor.name = this.state.visitorName;
+            visitor.group = "Külaline";
+            let newMembers = this.state.members;
+            newMembers.push(visitor);
+            this.setState({
+                modalNew: !this.state.modalNew,
+                selected: newSelected,
+                members: newMembers
+            });
+            this.populateMembersList(newSelected);
+        });
+    }
+
+    onChange(e) {
+        this.setState({[e.target.name]: e.target.value})
+    }
+
     render() {
         return (
             <div>
@@ -241,11 +332,48 @@ export default class extends Component {
                     <ModalHeader toggle={this.toggle}>Osalejate märkimine</ModalHeader>
                     <ModalBody>
                         {this.state.membersList}
+                        <Modal isOpen={this.state.modalNew} toggle={this.toggleNew}>
+                            <ModalHeader toggle={this.toggleNew}>Külalise lisamine</ModalHeader>
+                            <ModalBody>
+                                <Form>
+                                    <FormGroup>
+                                        <Label for="visitorName">Nimi</Label>
+                                        <Input type="text" name="visitorName" id="visitorName" value={this.state.visitorName}
+                                               onChange={this.onChange}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label for="visitorPhone">Telefoni nr</Label>
+                                        <Input type="tel" name="visitorPhone" id="visitorPhone" value={this.state.visitorPhone}
+                                               onChange={this.onChange}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label for="visitorMail">E-mail</Label>
+                                        <Input type="email" name="visitorMail" id="visitorMail" value={this.state.visitorMail}
+                                               onChange={this.onChange}/>
+                                    </FormGroup>
+                                </Form>
+                                <Modal isOpen={this.state.modalAdd} toggle={this.toggleAdd}>
+                                    <ModalHeader toggle={this.toggleAdd}>Külalise lisamine teisest grupist</ModalHeader>
+                                    <ModalBody>
+                                        {this.state.visitorsList}
+                                    </ModalBody>
+                                    <ModalFooter>
+                                        <Button color="secondary" onClick={this.toggleAdd}>Tagasi</Button>
+                                    </ModalFooter>
+                                </Modal>
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button color="primary" onClick={this.toggleAdd}>Lisa külaline teisest grupist</Button>
+                                <Button color="success" onClick={this.handleAdd}>Lisa uus külaline</Button>
+                                <Button color="secondary" onClick={this.toggleNew}>Tagasi</Button>
+                            </ModalFooter>
+                        </Modal>
                     </ModalBody>
                     <ModalFooter>
+                        <Button color="primary" onClick={this.toggleNew}>Lisa külaline</Button>
                         {this.state.saved === false ?
-                            <Button color="primary" onClick={this.handleSubmit}>Salvesta</Button> :
-                            <Button color="primary" onClick={this.handleUpdate}>Uuenda</Button>
+                            <Button color="success" onClick={this.handleSubmit}>Salvesta</Button> :
+                            <Button color="success" onClick={this.handleUpdate}>Uuenda</Button>
                         }
                         <Button color="secondary" onClick={this.toggle}>Tagasi</Button>
                     </ModalFooter>

@@ -131,7 +131,7 @@ export default class extends Component {
                     let name = person.val().name;
                     persons.push(
                         <ListGroupItem className="justify-content-between" key={name} action>
-                            {name} {tab === 'Kõik' && ' (' + person.val().group + ')'}
+                            {name} {tab === 'Kõik' && ' (' + (person.val().group != null ? person.val().group : "Külaline") + ')'}
                             <ButtonGroup>
                                 <Button color="warning" onClick={() => this.toggleEdit(person.key)}><MdEdit /></Button>
                                 <Button color="danger" onClick={() => this.toggleDelete(person.key)}><MdDelete /></Button>
