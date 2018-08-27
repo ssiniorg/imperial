@@ -194,8 +194,13 @@ export default class extends Component {
             name: this.state.trainingName,
             days: this.state.trainingDays,
             groups: this.state.trainingGroups,
-            startDate: this.state.trainingStart.startOf("day").toISOString(),
-            endDate: this.state.trainingEnd.startOf("day").toISOString(),
+            startDate: moment.isMoment(this.state.trainingStart) ?
+                this.state.trainingStart.startOf("day").toISOString() :
+                moment.utc(this.state.trainingStart).startOf("day").toISOString(),
+            endDate: moment.isMoment(this.state.trainingEnd) ?
+                this.state.trainingEnd.startOf("day").toISOString() :
+                moment.utc(this.state.trainingEnd).startOf("day").toISOString()
+            ,
             startTime: this.state.trainingStartTime.toISOString(),
             endTime: this.state.trainingEndTime.toISOString(),
             createdBy: auth.currentUser.uid
@@ -217,8 +222,13 @@ export default class extends Component {
             name: this.state.trainingName,
             days: this.state.trainingDays,
             groups: this.state.trainingGroups,
-            startDate: this.state.trainingStart.startOf("day").toISOString(),
-            endDate: this.state.trainingEnd.startOf("day").toISOString(),
+            startDate: moment.isMoment(this.state.trainingStart) ?
+                this.state.trainingStart.startOf("day").toISOString() :
+                moment.utc(this.state.trainingStart).startOf("day").toISOString(),
+            endDate: moment.isMoment(this.state.trainingEnd) ?
+                this.state.trainingEnd.startOf("day").toISOString() :
+                moment.utc(this.state.trainingEnd).startOf("day").toISOString()
+            ,
             startTime: this.state.trainingStartTime.toISOString(),
             endTime: this.state.trainingEndTime.toISOString(),
             editedBy: auth.currentUser.uid
@@ -400,6 +410,28 @@ export default class extends Component {
                                 </div>
                             </FormGroup>
                         </Form>
+                        <Modal isOpen={this.state.modalStartDate} toggle={this.toggleStartDate}>
+                            <ModalHeader>Alguskuupäev</ModalHeader>
+                            <ModalBody>
+                                <InfiniteCalendar onSelect={
+                                    (date) => { this.setState({
+                                        trainingStart: date,
+                                        modalStartDate: false
+                                    })}}
+                                />
+                            </ModalBody>
+                        </Modal>
+                        <Modal isOpen={this.state.modalEndDate} toggle={this.toggleEndDate}>
+                            <ModalHeader>Lõppkuupäev</ModalHeader>
+                            <ModalBody>
+                                <InfiniteCalendar onSelect={
+                                    (date) => { this.setState({
+                                        trainingEnd: date,
+                                        modalEndDate: false
+                                    })}}
+                                />
+                            </ModalBody>
+                        </Modal>
                     </ModalBody>
                     <ModalFooter>
                         <Button color="primary" onClick={this.handleEdit}>Muuda</Button>{' '}

@@ -178,12 +178,12 @@ export default class extends Component {
             db.ref("/users/" + key).once("value").then((snapshot) => {
                 let person = snapshot.val();
                 this.setState({
-                    personName: person.name,
-                    personCode: person.personCode,
-                    personPhone: person.phone,
-                    personMail: person.email,
-                    personGroup: person.group,
-                    personRole: person.role,
+                    personName: person.name || '',
+                    personCode: person.personCode || '',
+                    personPhone: person.phone || '',
+                    personMail: person.email || '',
+                    personGroup: person.group || '',
+                    personRole: person.role || '',
                     personKey: key,
                 });
             });

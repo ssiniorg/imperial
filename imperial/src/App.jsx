@@ -7,6 +7,7 @@ import NavBar from "./NavBar";
 import PersonsPage from "./PersonsPage";
 import GroupsPage from "./GroupsPage";
 import TrainingsPage from "./TrainingsPage";
+import StatsPage from "./StatsPage";
 
 function PrivateRoute({component: Component, authed, ...rest}) {
     return (
@@ -67,6 +68,7 @@ class App extends Component {
                     <PrivateRoute authed={this.state.authed} path="/persons" component={PersonsPage}/>
                     <PrivateRoute authed={this.state.authed} path="/groups" component={GroupsPage}/>
                     <PrivateRoute authed={this.state.authed} path="/trainings" component={TrainingsPage}/>
+                    <PrivateRoute authed={this.state.authed} path="/stats" component={StatsPage}/>
                 </div>
 
             </BrowserRouter>

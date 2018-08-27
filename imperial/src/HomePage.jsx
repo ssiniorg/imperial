@@ -76,6 +76,7 @@ export default class extends Component {
         });
         db.ref("/trainings/").orderByChild("name").on("value", (snapshot) => {
             snapshot.forEach((snap) => {
+                console.log(this.state.events);
                 this.setState({
                     events: this.getTrainingEvents(snap)
                 })
@@ -85,7 +86,7 @@ export default class extends Component {
 
     getTrainingEvents(snapshot) {
         let training = snapshot.val();
-        let events = [];
+        let events = this.state.events;
         let startTime = moment.utc(training.startTime);
         let startDate = moment(training.startDate);
         let endTime = moment.utc(training.endTime);
